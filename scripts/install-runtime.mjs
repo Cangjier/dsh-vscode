@@ -32,7 +32,7 @@ if (platform === undefined) {
   process.exit(2)
 }
 
-if (existsSync(path.join(runtimeDir, 'bin', 'code-server'))) {
+if (existsSync(path.join(runtimeDir, 'bin', process.platform === 'win32' ? 'code-server.cmd' : 'code-server'))) {
   console.log(`code-server is already installed at ${runtimeDir}`)
   process.exit(0)
 }

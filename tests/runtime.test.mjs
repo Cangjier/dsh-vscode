@@ -7,7 +7,7 @@ test('releasePlatform maps the supported standalone builds', () => {
   assert.equal(releasePlatform('linux', 'arm64'), 'linux-arm64')
   assert.equal(releasePlatform('darwin', 'arm64'), 'macos-arm64')
   assert.equal(releasePlatform('darwin', 'x64'), 'macos-amd64')
-  assert.equal(releasePlatform('win32', 'x64'), undefined)
+  assert.equal(releasePlatform('win32', 'x64'), 'windows-amd64')
 })
 
 test('resolveDataDir prefers config, then the profile directory', () => {

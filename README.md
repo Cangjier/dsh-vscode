@@ -35,7 +35,7 @@ browser                          Host (dsh web)                         loopback
 ## Requirements
 
 - A `web` profile (the bundle's Client half is a Web plugin).
-- **Linux x64/arm64 or macOS** for the automatic runtime install. The download
+- **Linux x64/arm64, macOS x64/arm64, or Windows x64** for the automatic runtime install. The download
   is a prebuilt code-server standalone archive; nothing is compiled and no
   package manager runs on the host.
 - About 300 MB of download and 750 MB of disk for the runtime, plus roughly

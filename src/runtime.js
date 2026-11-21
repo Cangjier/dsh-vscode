@@ -79,7 +79,8 @@ export class VSCodeRuntime {
     this.userDataDir = path.join(this.dataDir, 'user-data')
     this.extensionsDir = path.join(this.dataDir, 'extensions')
     this.logPath = path.join(this.dataDir, 'code-server.log')
-    this.bin = String(options.config.codeServerBin ?? '').trim() || path.join(this.runtimeDir, 'bin', 'code-server')
+    const configuredBin = String(options.config.codeServerBin ?? '').trim()
+    this.bin = configuredBin || path.join(this.runtimeDir, 'bin', process.platform === 'win32' ? 'code-server.cmd' : 'code-server')
     this.folder = String(options.config.folder ?? '').trim()
       || process.env.DSH_WORKDIR
       || process.cwd()
@@ -225,7 +226,7 @@ export class VSCodeRuntime {
     env.CODE_SERVER_CONFIG = path.join(this.dataDir, 'config.yaml')
     this.#log(`starting ${this.bin} ${args.join(' ')}`)
     const stream = createWriteStream(this.logPath, { flags: 'a' })
-    const child = spawn(this.bin, args, { env, stdio: ['ignore', 'pipe', 'pipe'] })
+    const child = spawnCodeServer(this.bin, args, { env, stdio: ['ignore', 'pipe', 'pipe'] })
     this.child = child
     const capture = (chunk) => {
       const text = String(chunk)
@@ -436,12 +437,21 @@ export class VSCodeRuntime {
   }
 }
 
+/** Spawn a launcher, going through cmd.exe for a Windows .cmd shim. */
+function spawnCodeServer(bin, args, options) {
+  if (process.platform !== 'win32' || !/\.(cmd|bat)$/i.test(bin)) return spawn(bin, args, options)
+  const quote = value => `"${String(value).replace(/"/g, '""')}"`
+  const line = [quote(bin), ...args.map(quote)].join(' ')
+  return spawn(process.env.ComSpec ?? 'cmd.exe', ['/d', '/s', '/c', line], options)
+}
+
 /** Human-readable platform selector used in the release asset name. */
 export function releasePlatform(platform = process.platform, arch = process.arch) {
   if (platform === 'linux' && arch === 'x64') return 'linux-amd64'
   if (platform === 'linux' && arch === 'arm64') return 'linux-arm64'
   if (platform === 'darwin' && arch === 'arm64') return 'macos-arm64'
   if (platform === 'darwin' && arch === 'x64') return 'macos-amd64'
+  if (platform === 'win32' && arch === 'x64') return 'windows-amd64'
   return undefined
 }
 

@@ -25,7 +25,7 @@ package README.
 - The browser page reload rebuilds the iframe; only the page session is kept
   alive by `display: none`.
 - One workbench is shared by the profile. Use one browser tab for editing.
-- Automatic runtime install supports Linux x64/arm64 and macOS. Windows needs
-  an explicit `codeServerBin`.
+- Automatic runtime install supports Linux x64/arm64, macOS x64/arm64 and
+  Windows x64.
 - The workbench is as privileged as the DSH host user; it is protected only by
   the Harness/gate access control.
