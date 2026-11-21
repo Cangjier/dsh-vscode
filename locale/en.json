@@ -1,0 +1,8 @@
+{
+  "meta": {
+    "title": "VS Code",
+    "description": "Embeds a server-side VS Code workbench as a Harness panel; open files, run terminals, and keep every editor and terminal alive while you move between panels.",
+    "detail": "docs/DETAIL.md"
+  },
+  "panel": "VS Code"
+}

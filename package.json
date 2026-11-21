@@ -1,0 +1,49 @@
+{
+  "name": "@local/dsh-vscode",
+  "version": "0.1.0",
+  "private": true,
+  "description": "VS Code as a DeepSeek Harness panel: a code-server runtime managed by the Host and a page that survives panel switches.",
+  "type": "module",
+  "license": "MIT",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg",
+    "./package.json": "./package.json",
+    "./cordis.patch.yml": "./cordis.patch.yml"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "src",
+    "scripts",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "docs",
+    "icon.svg",
+    "README.md"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-layout",
+        "@deepseek-ai/dsh-client-ui-sidebar",
+        "@deepseek-ai/dsh-client-ui-theme"
+      ]
+    }
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "install-runtime": "node scripts/install-runtime.mjs",
+    "check": "node --check index.js && node --check client.js && node --check src/proxy.js && node --check src/runtime.js && node --check scripts/install-runtime.mjs",
+    "test": "node --test \"tests/*.test.mjs\""
+  }
+}

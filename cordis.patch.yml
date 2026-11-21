@@ -1,0 +1,3 @@
+- insert:
+    - id: vscode
+      name: '@local/dsh-vscode'

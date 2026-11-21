@@ -1,0 +1,8 @@
+{
+  "meta": {
+    "title": "VS Code",
+    "description": "把服务端的 VS Code 工作台嵌入 Harness 面板：打开文件、运行终端，切到其他面板时编辑器与终端会话保持存活。",
+    "detail": "docs/DETAIL.md"
+  },
+  "panel": "VS Code"
+}
