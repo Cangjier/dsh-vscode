@@ -87,11 +87,14 @@ window.__ModuleLoader__.load({
         frame.addEventListener('load', pushScheme)
         void loadConfig().then((config) => {
           if (disposed || frame === undefined) return
-          // code-server resolves `?folder=` as a URI path: a Windows path with
-          // backslashes makes the explorer fail to resolve a filesystem
-          // provider ("Unable to resolve filesystem provider ..."). Forward
-          // slashes work on every platform, so normalize once here.
-          const folderPath = typeof config.folder === 'string' ? config.folder.replace(/\\/gu, '/') : ''
+          // code-server's workbench wants an absolute POSIX-style path in
+          // `?folder=`: a Windows path with backslashes is treated as a
+          // relative path ("Unable to resolve filesystem provider ..."), and
+          // `C:/...` resolves to a local file provider whose tree stays
+          // empty. The leading-slash form (`/C:/...`) is what code-server maps
+          // to its remote filesystem, so normalize it here.
+          const rawFolder = typeof config.folder === 'string' ? config.folder.replace(/\\/gu, '/') : ''
+          const folderPath = /^[A-Za-z]:\//u.test(rawFolder) ? `/${rawFolder}` : rawFolder
           const folder = folderPath !== '' ? `?folder=${encodeURIComponent(folderPath)}` : ''
           frame.src = `/vscode/${folder}`
         })
