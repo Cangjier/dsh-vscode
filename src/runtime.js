@@ -236,6 +236,12 @@ export class VSCodeRuntime {
       '--disable-update-check',
       '--disable-workspace-trust',
       '--disable-getting-started-override',
+      // The proxy (the gate included) sends its own Host, so code-server's
+      // origin check compares the browser's Origin with the proxy's authority
+      // and refuses the workbench WebSocket with 403. The listener is bound to
+      // loopback and every request already passed the Harness gate, so the
+      // proxy's own origin check is the one that matters.
+      '--trusted-origins', '*',
       '--user-data-dir', this.userDataDir,
       '--extensions-dir', this.extensionsDir,
     ]
@@ -336,6 +342,12 @@ export class VSCodeRuntime {
       headers,
     }, (response) => {
       const out = { ...response.headers }
+      // The workbench registers its worker with the /vscode/ scope while the
+      // script is served from /_static; without this header the browser caps
+      // the scope at the script's directory and registration fails.
+      if (typeof target === 'string' && target.includes('/serviceWorker.js')) {
+        out['service-worker-allowed'] = `${BASE_PATH}/`
+      }
       const location = out.location
       if (withPrefix && typeof location === 'string' && location.startsWith('/') && !location.startsWith(`${BASE_PATH}/`)) {
         out.location = `${BASE_PATH}${location}`
