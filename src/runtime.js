@@ -427,11 +427,21 @@ export class VSCodeRuntime {
     this.child = undefined
     this.port = undefined
     if (child !== undefined && child.exitCode === null) {
-      child.kill('SIGTERM')
-      await new Promise((resolve) => {
-        const timer = setTimeout(() => { child.kill('SIGKILL'); resolve() }, 3000)
-        child.once('exit', () => { clearTimeout(timer); resolve() })
-      })
+      if (process.platform === 'win32') {
+        // A .cmd shim is the direct child; taskkill /T reaches the node process
+        // it started, which a plain child.kill() would leave running.
+        await new Promise((resolve) => {
+          const killer = spawn('taskkill', ['/pid', String(child.pid), '/T', '/F'], { stdio: 'ignore' })
+          killer.once('error', () => { try { child.kill() } catch {} resolve() })
+          killer.once('exit', () => resolve())
+        })
+      } else {
+        child.kill('SIGTERM')
+        await new Promise((resolve) => {
+          const timer = setTimeout(() => { child.kill('SIGKILL'); resolve() }, 3000)
+          child.once('exit', () => { clearTimeout(timer); resolve() })
+        })
+      }
     }
     this.state = 'idle'
   }
