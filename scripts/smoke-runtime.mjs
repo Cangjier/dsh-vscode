@@ -35,8 +35,16 @@ const runtime = new VSCodeRuntime({
 })
 
 let server
+const upgraded = new Set()
 const cleanup = async () => {
-  if (server !== undefined) await new Promise(resolve => server.close(resolve))
+  if (server !== undefined) {
+    // A proxied WebSocket keeps the HTTP server's connection table open, so
+    // close() alone never settles. Destroy both halves before waiting.
+    for (const socket of upgraded) socket.destroy()
+    upgraded.clear()
+    server.closeAllConnections?.()
+    await new Promise(resolve => server.close(resolve))
+  }
   if (process.env.DSHV_KEEP_RUNNING !== '1') await runtime.dispose()
 }
 process.once('SIGINT', () => { void cleanup().finally(() => process.exit(130)) })
@@ -54,7 +62,11 @@ try {
   if (!status.running) throw new Error('code-server is not running')
 
   server = http.createServer((req, res) => runtime.handleHttp(req, res))
-  server.on('upgrade', (req, socket, head) => runtime.handleUpgrade(req, socket, head))
+  server.on('upgrade', (req, socket, head) => {
+    upgraded.add(socket)
+    socket.once('close', () => upgraded.delete(socket))
+    runtime.handleUpgrade(req, socket, head)
+  })
   const port = await listen(server)
   const origin = `http://127.0.0.1:${port}`
 
