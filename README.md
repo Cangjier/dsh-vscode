@@ -74,6 +74,7 @@ Every field is optional.
 | `dataDir` | `$DSH_PROFILE_DIR/vscode-data` | Runtime, user data, extensions and log. |
 | `codeServerBin` | `runtime/bin/code-server` | Use an existing code-server launcher. |
 | `version` | `4.146.0` | Release to download when the runtime is missing. |
+| `runtimeUrl` | empty | Direct archive URL tried before GitHub (mirror/offline). |
 | `port` | `0` | Fixed loopback port; `0` chooses one. |
 | `locale` | browser | Workbench locale, for example `zh-cn`. |
 | `colorTheme` | `Default Dark Modern` | Initial theme when none is stored. |

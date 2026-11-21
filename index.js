@@ -23,6 +23,8 @@ export const Config = z.object({
   codeServerBin: z.string().default(''),
   /** code-server release to download when the runtime is missing. */
   version: z.string().default('4.146.0'),
+  /** Direct archive URL to try before GitHub (offline/mirror hosts). */
+  runtimeUrl: z.string().default(''),
   /** Fixed loopback port; 0 lets the OS choose one. */
   port: z.natural().default(0),
   /** Workbench locale (for example `zh-cn`); empty follows the browser. */

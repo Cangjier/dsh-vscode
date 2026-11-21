@@ -16,9 +16,9 @@ server-side VS Code workbench, embedded in the Harness page.
 
 ## Configuration
 
-`folder`, `dataDir`, `codeServerBin`, `version`, `port`, `locale`,
-`colorTheme`, `syncTheme`, `autoInstall` and `args` are documented in the
-package README.
+`folder`, `dataDir`, `codeServerBin`, `version`, `runtimeUrl`, `port`,
+`locale`, `colorTheme`, `syncTheme`, `autoInstall` and `args` are documented
+in the package README.
 
 ## Limitations
 

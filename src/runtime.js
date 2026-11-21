@@ -161,6 +161,7 @@ export class VSCodeRuntime {
     await mkdir(downloadDir, { recursive: true })
     const url = `https://github.com/coder/code-server/releases/download/v${version}/${archiveName}`
     const mirrors = [
+      ...(String(this.config.runtimeUrl ?? '').trim() !== '' ? [String(this.config.runtimeUrl).trim()] : []),
       url,
       `https://ghfast.top/${url}`,
       `https://gh-proxy.com/${url}`,
@@ -186,7 +187,7 @@ export class VSCodeRuntime {
     await rm(staging, { recursive: true, force: true })
     await mkdir(staging, { recursive: true })
     await extract(archive, staging)
-    const stagedBin = path.join(staging, 'bin', 'code-server')
+    const stagedBin = path.join(staging, 'bin', process.platform === 'win32' ? 'code-server.cmd' : 'code-server')
     if (!existsSync(stagedBin)) throw new Error('the downloaded archive did not contain bin/code-server')
     await rm(this.runtimeDir, { recursive: true, force: true })
     await rename(staging, this.runtimeDir)
