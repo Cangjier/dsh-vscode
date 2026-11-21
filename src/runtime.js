@@ -451,9 +451,15 @@ export class VSCodeRuntime {
 /** Spawn a launcher, going through cmd.exe for a Windows .cmd shim. */
 function spawnCodeServer(bin, args, options) {
   if (process.platform !== 'win32' || !/\.(cmd|bat)$/i.test(bin)) return spawn(bin, args, options)
+  // cmd.exe parses one command line, not an argv list. The line is already
+  // quoted for cmd, so it must reach it verbatim: without this flag Node
+  // re-escapes the quotes and cmd looks for a command literally named `\"..."`.
   const quote = value => `"${String(value).replace(/"/g, '""')}"`
   const line = [quote(bin), ...args.map(quote)].join(' ')
-  return spawn(process.env.ComSpec ?? 'cmd.exe', ['/d', '/s', '/c', line], options)
+  return spawn(process.env.ComSpec ?? 'cmd.exe', ['/d', '/s', '/c', line], {
+    ...options,
+    windowsVerbatimArguments: true,
+  })
 }
 
 /** Human-readable platform selector used in the release asset name. */
