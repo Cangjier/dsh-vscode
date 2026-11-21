@@ -1,5 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import path from 'node:path'
 import { launchPage, releasePlatform, resolveDataDir } from '../src/runtime.js'
 
 test('releasePlatform maps the supported standalone builds', () => {
@@ -11,11 +12,11 @@ test('releasePlatform maps the supported standalone builds', () => {
 })
 
 test('resolveDataDir prefers config, then the profile directory', () => {
-  assert.equal(resolveDataDir({ dataDir: '/tmp/example' }), '/tmp/example')
+  assert.equal(resolveDataDir({ dataDir: '/tmp/example' }), path.resolve('/tmp/example'))
   const previous = process.env.DSH_PROFILE_DIR
   process.env.DSH_PROFILE_DIR = '/tmp/profile'
   try {
-    assert.equal(resolveDataDir({ dataDir: '' }), '/tmp/profile/vscode-data')
+    assert.equal(resolveDataDir({ dataDir: '' }), path.join('/tmp/profile', 'vscode-data'))
   } finally {
     if (previous === undefined) delete process.env.DSH_PROFILE_DIR
     else process.env.DSH_PROFILE_DIR = previous
