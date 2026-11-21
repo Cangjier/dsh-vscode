@@ -241,7 +241,9 @@ export class VSCodeRuntime {
     child.stderr?.on('data', capture)
     child.once('exit', (code, signal) => {
       stream.end()
-      this.#log(`code-server exited code=${String(code)} signal=${String(signal)}`)
+      // A dispose() kill is intentional; do not make the shutdown look like a
+      // crash in the status log (the smoke script used to report this line).
+      if (!this.disposed) this.#log(`code-server exited code=${String(code)} signal=${String(signal)}`)
       if (this.child === child) {
         this.child = undefined
         this.port = undefined
