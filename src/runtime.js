@@ -16,6 +16,7 @@ import https from 'node:https'
 import net from 'node:net'
 import path from 'node:path'
 import { pipeline } from 'node:stream/promises'
+import { fileURLToPath } from 'node:url'
 
 /** Prefix the workbench lives under on the Harness origin. */
 export const BASE_PATH = '/vscode'
@@ -29,12 +30,34 @@ export const STATIC_PATH = '/_static'
 const DOWNLOAD_IDLE_TIMEOUT_MS = 60_000
 const HEALTH_TIMEOUT_MS = 60_000
 
+/**
+ * Profile root that contains this plugin, found by walking up from the module.
+ *
+ * `DSH_PROFILE_DIR` is the clean signal, but a Windows service can start the
+ * Harness without exporting it, and the workdir is not the profile. The
+ * installed plugin's own location is: a wired profile has it under
+ * `<profile>/node_modules/@local/dsh-vscode`.
+ * @returns {string|null} profile root, or null when the plugin is not wired.
+ */
+function moduleProfileRoot() {
+  let dir = path.dirname(fileURLToPath(import.meta.url))
+  for (let depth = 0; depth < 6; depth += 1) {
+    if (existsSync(path.join(dir, 'node_modules', '@local', 'dsh-vscode', 'package.json'))) return dir
+    const parent = path.dirname(dir)
+    if (parent === dir) break
+    dir = parent
+  }
+  return null
+}
+
 /** Resolve a runtime directory from plugin config or the profile default. */
 export function resolveDataDir(config) {
   const configured = String(config.dataDir ?? '').trim()
   if (configured !== '') return path.resolve(configured)
   const profile = process.env.DSH_PROFILE_DIR
   if (profile !== undefined && profile !== '') return path.join(profile, 'vscode-data')
+  const local = moduleProfileRoot()
+  if (local !== null) return path.join(local, 'vscode-data')
   return path.join(process.cwd(), '.dsh-vscode-data')
 }
 
