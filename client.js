@@ -87,9 +87,12 @@ window.__ModuleLoader__.load({
         frame.addEventListener('load', pushScheme)
         void loadConfig().then((config) => {
           if (disposed || frame === undefined) return
-          const folder = typeof config.folder === 'string' && config.folder !== ''
-            ? `?folder=${encodeURIComponent(config.folder)}`
-            : ''
+          // code-server resolves `?folder=` as a URI path: a Windows path with
+          // backslashes makes the explorer fail to resolve a filesystem
+          // provider ("Unable to resolve filesystem provider ..."). Forward
+          // slashes work on every platform, so normalize once here.
+          const folderPath = typeof config.folder === 'string' ? config.folder.replace(/\\/gu, '/') : ''
+          const folder = folderPath !== '' ? `?folder=${encodeURIComponent(folderPath)}` : ''
           frame.src = `/vscode/${folder}`
         })
         element.appendChild(frame)
@@ -97,6 +100,10 @@ window.__ModuleLoader__.load({
       }
 
       return {
+        /** Start loading the hidden iframe before the panel is first opened. */
+        preload() {
+          ensure()
+        },
         show(next) {
           ensure()
           visible = true
@@ -202,6 +209,18 @@ window.__ModuleLoader__.load({
         applyTheme()
         ctx.effect(() => ctx.on('theme/change', applyTheme), 'vscode:theme')
         ctx.effect(() => () => surface.dispose(), 'vscode:surface')
+        // The workbench is a multi-megabyte JavaScript payload. Start it while
+        // the rest of the UI is idle so the first visit shows the editor
+        // instead of code-server's "editor failed to load" startup fallback.
+        ctx.effect(() => {
+          if (typeof window === 'undefined') return undefined
+          if (typeof window.requestIdleCallback === 'function') {
+            const id = window.requestIdleCallback(() => surface.preload(), { timeout: 4000 })
+            return () => window.cancelIdleCallback(id)
+          }
+          const id = window.setTimeout(() => surface.preload(), 1500)
+          return () => window.clearTimeout(id)
+        }, 'vscode:warmup')
 
         ctx.slots.inject('main', () => ctx.slots.register({
           name: 'main',
